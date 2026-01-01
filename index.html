@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Marsaero Innovations Attendance</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<!-- QR -->
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+</head>
+
+<body>
+<div class="container">
+  <div class="left">
+    <img src="mars_new_logo-removebg.png" alt="Marsaero Innovation Logo" class="logo">
+    <h1>Marsaero Innovations</h1>
+    <p class="slogan">Verify Your Presence Now — Zero Hassle Always</p>
+  </div>
+  <div class="right">
+    <p class="scan-text">Scan here</p>
+    <div id="qr"></div>
+    <p class="timer-text">Refresh in <span id="timer">30</span>s</p>
+  </div>
+
+</div>
+
+<script>
+/* ================= CONFIG ================= */
+const OFFICE_ID = "OFFICE_01";
+const REFRESH_TIME = 30000;
+
+/* =============== FIREBASE ================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyA5bs-4C_-zVO3tC1gBzWeNXgdjpKkkrgw",
+  authDomain: "mars-0000.firebaseapp.com",
+  databaseURL: "https://mars-0000-default-rtdb.firebaseio.com",
+  projectId: "mars-0000",
+  storageBucket: "mars-0000.appspot.com",
+  messagingSenderId: "1025621986299",
+  appId: "1:1025621986299:web:1aef74bfb69849422dd95e"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+/* =============== QR LOGIC ================= */
+let qr;
+let seconds = 30;
+
+function generateToken() {
+  return OFFICE_ID + "_" + Date.now() + "_" + Math.random().toString(36).substr(2,6);
+}
+
+function updateQR() {
+  const token = generateToken();
+
+  // save token to Firebase
+  db.ref("activeQR/" + OFFICE_ID).set({
+    token: token,
+    timestamp: firebase.database.ServerValue.TIMESTAMP
+  });
+
+  // render QR
+  if (!qr) {
+    qr = new QRCode(document.getElementById("qr"), {
+      text: token,
+      width: 220,
+      height: 220
+    });
+  } else {
+    qr.clear();
+    qr.makeCode(token);
+  }
+
+  seconds = 30;
+}
+
+setInterval(() => {
+  seconds--;
+  document.getElementById("timer").innerText = seconds;
+  if (seconds <= 0) updateQR();
+}, 1000);
+
+updateQR();
+</script>
+</body>
+</html>
